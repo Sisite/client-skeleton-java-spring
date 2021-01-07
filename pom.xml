@@ -24,10 +24,14 @@
   	</licenses>
 	
 	<modules>
+		<module>wm-client-common</module>
 	    <module>client-skeleton-consumer</module>
 	    <module>client-skeleton-provider</module>
 	    <module>client-skeleton-subscriber</module>
-	    <module>client-skeleton-publisher</module>
+		<module>client-skeleton-publisher</module>
+		<module>wm-client-provider</module>
+		<module>wm-client-consumer</module>
+		
   	</modules>
 		
 	<dependencies>
@@ -35,7 +39,18 @@
 			<groupId>eu.arrowhead</groupId>
 			<artifactId>client-library</artifactId>
 			<version>4.1.3.13</version>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>4.1</version>
+	  </dependency>		
+	  <dependency>
+		  <groupId>com.fasterxml.jackson.dataformat</groupId>
+		  <artifactId>jackson-dataformat-xml</artifactId>
+	  </dependency>
+
+
 	</dependencies>
 	
 	<build>

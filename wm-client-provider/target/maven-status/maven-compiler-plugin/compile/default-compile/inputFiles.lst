@@ -1,0 +1,11 @@
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/security/ProviderSecurityConfig.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/configuration/ConfigConstants.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/controller/ProviderController.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/configuration/ContainerConfProperties.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/driver/ProviderDriver.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/security/ProviderTokenSecurityFilter.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/configuration/ContainerConfiguration.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/ProviderApplicationInitListener.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/security/ProviderAccessControlFilter.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/controller/WMDataService.java
+/home/robin/Arrowhead/wm/client-skeleton-java-spring/wm-client-provider/src/main/java/eu/arrowhead/client/skeleton/provider/ProviderMain.java
