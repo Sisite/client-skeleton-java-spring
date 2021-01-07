@@ -1,3 +1,9 @@
+# Arrowhead implementation of a Windmill sensor data service
+## This is a project for the course D7042E IoT-based industrial automation and digitalization give at Luleå University of Technology
+### The project is based of the Arrowhead Client Skeleteons (Java Spring-Boot)
+The project requires the same dependencies as the Arrowhead Client Skeletons and is liste below.
+In order to run the project one need to setup an Arrowhead Core with all three mandatory services running and the DataManager. This can be found at [core-java-spring](https://github.com/eclipse-arrowhead/core-java-spring/tree/datamanager).
+
 # Arrowhead Client Skeletons (Java Spring-Boot)
 ##### The project provides client skeletons for the Arrowhead Framework 4.1.3
 
