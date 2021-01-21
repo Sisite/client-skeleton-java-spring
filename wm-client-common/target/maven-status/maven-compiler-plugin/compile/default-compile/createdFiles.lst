@@ -1,6 +1,5 @@
 eu/arrowhead/client/skeleton/common/WMDataObject.class
 eu/arrowhead/client/skeleton/common/WMDataObjectList.class
-eu/arrowhead/client/skeleton/common/ConsumerJSONDTO.class
 eu/arrowhead/client/skeleton/common/ProviderCommonConstants.class
 eu/arrowhead/client/skeleton/common/ProviderDataReader.class
 eu/arrowhead/client/skeleton/common/ProviderDTO.class

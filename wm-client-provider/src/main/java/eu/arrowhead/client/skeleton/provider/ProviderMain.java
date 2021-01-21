@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 import eu.arrowhead.common.CommonConstants;
 
-import eu.arrowhead.client.skeleton.provider.driver.ProviderDriver;
+
 import eu.arrowhead.client.skeleton.common.ProviderCommonConstants;
 
 @SpringBootApplication

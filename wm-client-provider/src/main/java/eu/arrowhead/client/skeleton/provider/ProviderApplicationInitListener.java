@@ -83,7 +83,7 @@ public class ProviderApplicationInitListener extends ApplicationInitListener {
 		}else {
 			logger.info("TokenSecurityFilter in not active");
 		}		
-		final ServiceRegistryRequestDTO wmDataService = createServiceRegistryRequest(ProviderCommonConstants.WM_DATA_SERVICE, ProviderCommonConstants.WM_DATA_SERVICE_URI, HttpMethod.GET);
+		final ServiceRegistryRequestDTO wmDataService = createServiceRegistryRequest(ProviderCommonConstants.WM_DATA_SERVICE, ProviderCommonConstants.WM_DATA_SERVICE_URI_JSON, HttpMethod.GET);
 		wmDataService.getMetadata().put(ProviderCommonConstants.REQUEST_PARAM_KEY_NEXT, ProviderCommonConstants.REQUEST_PARAM_NEXT);
 		arrowheadService.forceRegisterServiceToServiceRegistry(wmDataService);
 		logger.info("Service registred: {}", ProviderCommonConstants.WM_DATA_SERVICE);
@@ -134,11 +134,11 @@ public class ProviderApplicationInitListener extends ApplicationInitListener {
 		if (tokenSecurityFilterEnabled) {
 			systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
 			serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN.name());
-			serviceRegistryRequest.setInterfaces(List.of(ProviderCommonConstants.INTERFACE_SECURE));
+			serviceRegistryRequest.setInterfaces(List.of(ProviderCommonConstants.INTERFACE_SECURE_JSON));
 		} else if (sslEnabled) {
 			systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
 			serviceRegistryRequest.setSecure(ServiceSecurityType.CERTIFICATE.name());
-			serviceRegistryRequest.setInterfaces(List.of(ProviderCommonConstants.INTERFACE_SECURE));
+			serviceRegistryRequest.setInterfaces(List.of(ProviderCommonConstants.INTERFACE_SECURE_JSON));
 		} else {
 			serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE.name());
 			serviceRegistryRequest.setInterfaces(List.of(ProviderCommonConstants.INTERFACE_INSECURE));
