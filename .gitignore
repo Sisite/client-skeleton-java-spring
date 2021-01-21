@@ -27,6 +27,9 @@ wrapper
 /client-skeleton-consumer/target
 /client-skeleton-publisher/target
 /client-skeleton-subscriber/target
+/wm-client-consumer/target
+/wm-client-provider/target
+/wm-client-common/target
 /mvnw
 /mvnw.cmd
 /.settings
