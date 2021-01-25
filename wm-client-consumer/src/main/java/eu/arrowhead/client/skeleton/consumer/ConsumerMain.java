@@ -1,5 +1,7 @@
 package eu.arrowhead.client.skeleton.consumer;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.InputMismatchException;
@@ -105,13 +107,16 @@ public class ConsumerMain implements ApplicationRunner {
 				System.out.println("\n"+ serviceUri + "\n");
 				
 				// String registerM = "{\"op\":\"list\"}";
+				// BufferedWriter writer = new BufferedWriter(new FileWriter("data.json"));
 				
-
 				//System.out.println(msg);
 
 				// System.out.print(registerM);
 
 				String senMLMessage = convertToSenML(receivedData);
+				// writer.write(senMLMessage);
+				// writer.close();
+
 
 				//putHistorianData(orchResDM, registerM);
 				//putHistorianData(orchResDM, tempSenML());
@@ -224,13 +229,13 @@ public class ConsumerMain implements ApplicationRunner {
 		snML.addRecord(Label.NAME.attachValue("Time"), Label.VALUE.attachValue(pDTO.getTimeStamp()));
 		snML.addRecord(Label.NAME.attachValue("RPM"),Label.VALUE.attachValue(pDTO.getSpeed()));
 		final List<Double> acc = pDTO.getAccelerometer();
-		// for(int i = 0; i < 16383; i++) {
+		for(int i = 0; i < 16383; i++) {
                     
-		snML.addRecord(Label.NAME.attachValue("acceleration"), Label.VALUE.attachValue(acc.get(0)));
+		snML.addRecord(Label.NAME.attachValue("acceleration"), Label.VALUE.attachValue(acc.get(i)));
 			
-		// }
+		}
 		byte[] json = snML.getSenML();
-		System.out.println(new String(json));
+		// System.out.println(new String(json));
 		return new String(json);
 
 
@@ -252,46 +257,5 @@ public class ConsumerMain implements ApplicationRunner {
 	
 
 
-    // 	final Builder orchestrationFormBuilder = arrowheadService.getOrchestrationFormBuilder();
-    	
-    // 	final ServiceQueryFormDTO requestedService = new ServiceQueryFormDTO();
-    // 	requestedService.setServiceDefinitionRequirement("test-service");
-    	
-    // 	orchestrationFormBuilder.requestedService(requestedService)
-    // 							.flag(Flag.MATCHMAKING, false) //When this flag is false or not specified, then the orchestration response cloud contain more proper provider. Otherwise only one will be chosen if there is any proper.
-    // 							.flag(Flag.OVERRIDE_STORE, true) //When this flag is false or not specified, then a Store Orchestration will be proceeded. Otherwise a Dynamic Orchestration will be proceeded.
-    // 							.flag(Flag.TRIGGER_INTER_CLOUD, false); //When this flag is false or not specified, then orchestration will not look for providers in the neighbor clouds, when there is no proper provider in the local cloud. Otherwise it will. 
-    	
-    // 	final OrchestrationFormRequestDTO orchestrationRequest = orchestrationFormBuilder.build();
-    	
-    // 	OrchestrationResponseDTO response = null;
-    // 	try {
-    // 		response = arrowheadService.proceedOrchestration(orchestrationRequest);			
-	// 	} catch (final ArrowheadException ex) {
-	// 		//Handle the unsuccessful request as you wish!
-	// 	}
-    	
-    // 	//EXAMPLE OF CONSUMING THE SERVICE FROM A CHOSEN PROVIDER
-    	
-    // 	if (response == null || response.getResponse().isEmpty()) {
-    // 		//If no proper providers found during the orchestration process, then the response list will be empty. Handle the case as you wish!
-    // 		logger.debug("Orchestration response is empty");
-    // 		return;
-    // 	}
-    	
-    // 	final OrchestrationResultDTO result = response.getResponse().get(0); //Simplest way of choosing a provider.
-    	
-    // 	final HttpMethod httpMethod = HttpMethod.GET;//Http method should be specified in the description of the service.
-    // 	final String address = result.getProvider().getAddress();
-    // 	final int port = result.getProvider().getPort();
-    // 	final String serviceUri = result.getServiceUri();
-    // 	final String interfaceName = result.getInterfaces().get(0).getInterfaceName(); //Simplest way of choosing an interface.
-    // 	String token = null;
-    // 	if (result.getAuthorizationTokens() != null) {
-    // 		token = result.getAuthorizationTokens().get(interfaceName); //Can be null when the security type of the provider is 'CERTIFICATE' or nothing.
-	// 	}
-    // 	final Object payload = null; //Can be null if not specified in the description of the service.
-    	
-    // 	final String consumedService = arrowheadService.consumeServiceHTTP(String.class, httpMethod, address, port, serviceUri, interfaceName, token, payload, "testkey", "testvalue");
-	// }
+
 }
