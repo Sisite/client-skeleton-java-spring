@@ -1,11 +1,8 @@
 package eu.arrowhead.client.skeleton.consumer;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+
 import java.io.IOException;
-import java.time.Instant;
 import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -18,17 +15,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpMethod;
 
-
-import eu.arrowhead.client.skeleton.common.ProviderCommonConstants;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import eu.arrowhead.client.library.ArrowheadService;
 import eu.arrowhead.common.SSLProperties;
 import eu.arrowhead.common.CommonConstants;
+
 import eu.arrowhead.common.dto.shared.OrchestrationFlags.Flag;
 import eu.arrowhead.common.dto.shared.OrchestrationFormRequestDTO;
 import eu.arrowhead.common.dto.shared.OrchestrationFormRequestDTO.Builder;
@@ -36,9 +28,10 @@ import eu.arrowhead.common.dto.shared.OrchestrationResponseDTO;
 import eu.arrowhead.common.dto.shared.OrchestrationResultDTO;
 import eu.arrowhead.common.dto.shared.ServiceQueryFormDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
-import teamethernet.senmlapi.Label;
-import teamethernet.senmlapi.SenMLAPI;
-import eu.arrowhead.client.skeleton.common.ProviderDTO;
+
+import eu.arrowhead.client.library.ArrowheadService;
+
+import eu.arrowhead.client.skeleton.common.ProviderCommonConstants;
 import eu.arrowhead.client.skeleton.common.ProviderJSONDTO;
 
 @SpringBootApplication
@@ -80,7 +73,6 @@ public class ConsumerMain implements ApplicationRunner {
 	}
 
 	private void cmdUI(final Scanner sc) throws IOException, InterruptedException {
-		//final OrchestrationResultDTO orchRes = orchestrate(ProviderCommonConstants.WM_DATA_SERVICE);
 
 		while(true) {
 			try {
@@ -92,38 +84,12 @@ public class ConsumerMain implements ApplicationRunner {
 				if(!answer.equalsIgnoreCase("y")) {
 					break;
 				}
+				//Orchestrate and consume the service
 				final OrchestrationResultDTO orchRes = orchestrate(ProviderCommonConstants.WM_DATA_SERVICE);
 				ProviderJSONDTO receivedData = consumeWMData(orchRes);
-				//printXML(receivedData);
-				final OrchestrationResultDTO orchResDM = orchestrateDM("historian");
-				//printJson(receivedData);
 
-				final String address = orchResDM.getProvider().getAddress();
-				final int port = orchResDM.getProvider().getPort();
-				final String serviceUri = orchResDM.getServiceUri();
-
-				System.out.println("\n"+ address +"\n");
-				System.out.println("\n"+ port +"\n");
-				System.out.println("\n"+ serviceUri + "\n");
-				
-				// String registerM = "{\"op\":\"list\"}";
-				// BufferedWriter writer = new BufferedWriter(new FileWriter("data.json"));
-				
-				//System.out.println(msg);
-
-				// System.out.print(registerM);
-
-				String senMLMessage = convertToSenML(receivedData);
-				// writer.write(senMLMessage);
-				// writer.close();
-
-
-				//putHistorianData(orchResDM, registerM);
-				//putHistorianData(orchResDM, tempSenML());
-
-				putHistorianData(orchResDM, senMLMessage);
-
-
+				//Print the received data
+				printJson(receivedData);
 
 			} catch (final InputMismatchException | NumberFormatException ex) {
 				System.out.println("Wrong input try again");
@@ -136,10 +102,10 @@ public class ConsumerMain implements ApplicationRunner {
 		
 	}
 
+	//Orchestrate request for wm-data service
+
 	private OrchestrationResultDTO orchestrate (final String serviceName) {
-		// final ServiceQueryFormDTO srvQDTO = new ServiceQueryFormDTO.Builder(serviceName)
-		// 	.interfaces(getInterface()
-		// 	.build());
+
 		final ServiceQueryFormDTO srvQDTO = new ServiceQueryFormDTO();
 		srvQDTO.setServiceDefinitionRequirement(ProviderCommonConstants.WM_DATA_SERVICE);
 
@@ -162,27 +128,11 @@ public class ConsumerMain implements ApplicationRunner {
 		throw new ArrowheadException("Unsuccesful orchestration: " + serviceName);
 	}
 
-	private OrchestrationResultDTO orchestrateDM (final String serviceName) {
-		final ServiceQueryFormDTO srvQDTO = new ServiceQueryFormDTO();
-		srvQDTO.setServiceDefinitionRequirement("historian");
-		final Builder orchestrationFormBuilder = arrowheadService.getOrchestrationFormBuilder();
-		final OrchestrationFormRequestDTO  orchFormReq = orchestrationFormBuilder.requestedService(srvQDTO).flag(Flag.MATCHMAKING, true).flag(Flag.OVERRIDE_STORE, true).build();
-		final OrchestrationResponseDTO orchResp = arrowheadService.proceedOrchestration(orchFormReq);
-		if (orchResp == null) {
-			logger.info("No orchestration response received");
-			} else if (orchResp.getResponse().isEmpty()) {
-				logger.info("No provider found dm");
-			} else {
-				final OrchestrationResultDTO orchRes = orchResp.getResponse().get(0);
-				return orchRes;
-			}
-			throw new ArrowheadException("Unsuccesful orchestration: " + serviceName);
-	}
+	//Consume the data from the provider
 
 	private ProviderJSONDTO consumeWMData (final OrchestrationResultDTO orchRes) {
 		final String interfaceName = orchRes.getInterfaces().get(0).getInterfaceName();
 		final String secToken = orchRes.getAuthorizationTokens() == null ? null : orchRes.getAuthorizationTokens().get(interfaceName);
-		//final String qParam = {orchRes.getMetadata().get(ProviderCommonConstants.REQUEST_PARAM_KEY_NEXT),};
 
 		final HttpMethod httpMethod = HttpMethod.GET;
 		final String address = orchRes.getProvider().getAddress();
@@ -195,63 +145,15 @@ public class ConsumerMain implements ApplicationRunner {
 		
 	}
 
-	private void putHistorianData(final OrchestrationResultDTO orchRes, Object snMLMessage) {
-		final String interfaceName = orchRes.getInterfaces().get(0).getInterfaceName();
-		final String secToken = orchRes.getAuthorizationTokens() == null ? null : orchRes.getAuthorizationTokens().get(interfaceName);
-		//final String qParam = {orchRes.getMetadata().get(ProviderCommonConstants.REQUEST_PARAM_KEY_NEXT),};
-
-		final HttpMethod httpMethod = HttpMethod.PUT;
-		final String address = orchRes.getProvider().getAddress();
-		final int port = orchRes.getProvider().getPort();
-		final String serviceUri = orchRes.getServiceUri() + "/wm_client_consumer/wm-data";
+	//Print consumed data
+	private void printJson(final Object object) throws IOException {
+		ObjectMapper objMapper = new ObjectMapper();
+		objMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		System.out.println("\n" + objMapper.writeValueAsString(object)+ "\n");
 		
-		arrowheadService.consumeServiceHTTP(String.class, httpMethod, address, port , serviceUri, interfaceName, secToken, snMLMessage);
-
 	}
 
-	// private void printXML(final Object object) throws IOException {
-	// 	final XmlMapper xmlMapper = new XmlMapper();
-	// 	xmlMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-	// 	System.out.println("\n" + xmlMapper.writeValueAsString(object) + "\n");
-		
-	
-	// }
-	// private void printJson(final Object object) throws IOException {
-	// 	ObjectMapper objMapper = new ObjectMapper();
-	// 	objMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-	// 	//System.out.println("\n" + objMapper.writeValueAsString(object)+ "\n");
-		
-	// }
 
-	private String convertToSenML(ProviderJSONDTO pDTO) throws IOException {
-		SenMLAPI snML = SenMLAPI.initJson();
-		snML.addRecord(Label.BASE_NAME.attachValue("wm-data"), Label.BASE_TIME.attachValue((double)Instant.now().getEpochSecond()));
-		snML.addRecord(Label.NAME.attachValue("Time"), Label.VALUE.attachValue(pDTO.getTimeStamp()));
-		snML.addRecord(Label.NAME.attachValue("RPM"),Label.VALUE.attachValue(pDTO.getSpeed()));
-		final List<Double> acc = pDTO.getAccelerometer();
-		for(int i = 0; i < 16383; i++) {
-                    
-		snML.addRecord(Label.NAME.attachValue("acceleration"), Label.VALUE.attachValue(acc.get(i)));
-			
-		}
-		byte[] json = snML.getSenML();
-		// System.out.println(new String(json));
-		return new String(json);
-
-
-	}
-
-	// private String tempSenML() throws IOException {
-	// 	String msg = "{\"bn\": \"wm-data\", \"bt\" : "+(long)Instant.now().getEpochSecond() + ", \"bu\" : \"rpm\"}, {\"n\": \"speed1\", \"v\": 44.3}";
-	// 	SenMLAPI snML = SenMLAPI.initJson();
-	// 	snML.addRecord(Label.BASE_NAME.attachValue("wm-data"), Label.BASE_TIME.attachValue((double)Instant.now().getEpochSecond()), Label.BASE_UNIT.attachValue("rpm"));
-	// 	snML.addRecord(Label.NAME.attachValue("speed"), Label.VALUE.attachValue(44.3));
-
-	// 	byte [] json = snML.getSenML();
-	// 	System.out.println("\n" + new String(json) + "\n");
-	// 	return new String(json);
-
-	// }
 
 		
 	

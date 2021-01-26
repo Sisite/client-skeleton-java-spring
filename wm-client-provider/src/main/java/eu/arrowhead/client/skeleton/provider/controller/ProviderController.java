@@ -2,23 +2,42 @@ package eu.arrowhead.client.skeleton.provider.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 
-// import com.fasterxml.jackson.databind.SerializationFeature;
-// import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-// import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpMethod;
+import org.springframework.util.MultiValueMap;
 
 import eu.arrowhead.common.CommonConstants;
-
+import eu.arrowhead.common.dto.shared.OrchestrationResultDTO;
+import eu.arrowhead.common.dto.shared.ServiceQueryFormDTO;
 import eu.arrowhead.client.skeleton.common.*;
 
 import eu.arrowhead.client.skeleton.common.ProviderCommonConstants;
-
+import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.common.exception.DataNotFoundException;
+import eu.arrowhead.common.exception.InvalidParameterException;
+
+import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import eu.arrowhead.client.library.ArrowheadService;
+import eu.arrowhead.common.SSLProperties;
+import eu.arrowhead.common.core.CoreSystem;
+import eu.arrowhead.common.CommonConstants;
+import eu.arrowhead.common.dto.shared.OrchestrationFlags.Flag;
+import eu.arrowhead.common.dto.shared.OrchestrationFormRequestDTO;
+import eu.arrowhead.common.dto.shared.OrchestrationFormRequestDTO.Builder;
+import eu.arrowhead.common.dto.shared.OrchestrationResponseDTO;
+import eu.arrowhead.common.dto.shared.OrchestrationResultDTO;
+import eu.arrowhead.common.dto.shared.ServiceQueryFormDTO;
 
 @RestController
 public class ProviderController {
@@ -31,45 +50,85 @@ public class ProviderController {
 	@Autowired
 	private WMDataService dataService;
 
-	//=================================================================================================
-	// methods
+	@Autowired
+	private ArrowheadService arrowheadService;
+	
+	
 
-	//-------------------------------------------------------------------------------------------------
-	@GetMapping(path = CommonConstants.ECHO_URI)
-	public String echoService() {
-		return "Got it!";
-	}
+	private final Logger logger = LogManager.getLogger( ProviderController.class );
 
-	// @GetMapping(path = ProviderCommonConstants.WM_DATA_SERVICE_URI)
-	// public ProviderDTO getNextProviderDTO () throws IOException, URISyntaxException {
-	// 	ProviderDTO pDTO = new ProviderDTO();
-	// 	pDTO = dataService.getProviderDTO();
-
-	// 	// final XmlMapper xmlMapper = new XmlMapper();
-	// 	// xmlMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-	// 	// System.out.println("\n" + xmlMapper.writeValueAsString(pDTO) + "\n");
-		
-	// 	if(pDTO != null) {
-	// 		return pDTO;
-	// 	} else {
-	// 		throw new DataNotFoundException("No data left");
-	// 	}
-
-	// }
 
 	@GetMapping(path = ProviderCommonConstants.WM_DATA_SERVICE_URI_JSON)
-	ProviderJSONDTO getNextProviderJSONDTO () throws IOException, URISyntaxException {
-		System.out.println("PJSONDTO");
+	ProviderJSONDTO getNextProviderJSONDTO (@RequestParam MultiValueMap<String, String> params) throws IOException, URISyntaxException {
+		
+		Iterator<String> it = params.keySet().iterator();
+		
+		while (it.hasNext()) {
+			String par = it.next();
+			if(par.equals(ProviderCommonConstants.REQUEST_PARAM_KEY_NEXT)) {
+				if(!params.getFirst(par).equals(ProviderCommonConstants.REQUEST_PARAM_NEXT)) {
+					throw new InvalidParameterException("Invalid parameter", HttpStatus.SC_BAD_REQUEST, ProviderCommonConstants.WM_DATA_SERVICE_URI_JSON);
+				}
+			}
+		}
+		
 		ProviderJSONDTO pDTO = new ProviderJSONDTO();
 		pDTO = dataService.getProviderJSONDTO();
-		System.out.println(pDTO);
+
+
+
 		if(pDTO != null) {
+			putHistorianData(pDTO);
 			return pDTO;
 		} else {
-			throw new DataNotFoundException("No data left");
+			throw new DataNotFoundException("No data left", HttpStatus.SC_INTERNAL_SERVER_ERROR, ProviderCommonConstants.WM_DATA_SERVICE_URI);
 		}
+	}
+
+	boolean putHistorianData(ProviderJSONDTO pDTO) throws IOException {
+		arrowheadService.updateCoreServiceURIs(CoreSystem.ORCHESTRATOR);
+		final SenMLJsonDTO senMLJsonDTO = new SenMLJsonDTO();
+		senMLJsonDTO.createSenML(pDTO);
+		String message = senMLJsonDTO.getSenMLString();
+		OrchestrationResultDTO orchRes = orchestrate("historian");
+		historianRequest(orchRes, message);
+
+		return true;
+
+	}
+	private void historianRequest(OrchestrationResultDTO orchRes, Object snMLMessage) {
+		final String interfaceName = orchRes.getInterfaces().get(0).getInterfaceName();
+		final String secToken = orchRes.getAuthorizationTokens() == null ? null : orchRes.getAuthorizationTokens().get(interfaceName);
+		final HttpMethod httpMethod = HttpMethod.PUT;
+		final String address = orchRes.getProvider().getAddress();
+		final int port = orchRes.getProvider().getPort();
+		final String serviceUri = orchRes.getServiceUri() + ProviderCommonConstants.HIST_PROV_URI;
+
+		String response = arrowheadService.consumeServiceHTTP(String.class, httpMethod, address, port, serviceUri, interfaceName, secToken, snMLMessage);
+		System.out.println("\n Response : \n" + response + "\n");
+
+	}
+
+
+	private OrchestrationResultDTO orchestrate (final String serviceName) {
+		final ServiceQueryFormDTO srvQDTO = new ServiceQueryFormDTO();
+		srvQDTO.setServiceDefinitionRequirement("historian");
+		final Builder orchestrationFormBuilder = arrowheadService.getOrchestrationFormBuilder();
+		final OrchestrationFormRequestDTO  orchFormReq = orchestrationFormBuilder.requestedService(srvQDTO).flag(Flag.MATCHMAKING, true).flag(Flag.OVERRIDE_STORE, true).build();
+		final OrchestrationResponseDTO orchResp = arrowheadService.proceedOrchestration(orchFormReq);
+		if (orchResp == null) {
+			logger.info("No orchestration response received");
+			} else if (orchResp.getResponse().isEmpty()) {
+				logger.info("No provider found dm");
+			} else {
+				final OrchestrationResultDTO orchRes = orchResp.getResponse().get(0);
+				return orchRes;
+			}
+			throw new ArrowheadException("Unsuccesful orchestration: " + serviceName);
 	}
 	
 	//-------------------------------------------------------------------------------------------------
 	//TODO: implement here your provider related REST end points
+
+
 }

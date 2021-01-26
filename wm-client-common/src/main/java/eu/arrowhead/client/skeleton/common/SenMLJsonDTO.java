@@ -1,10 +1,13 @@
 package eu.arrowhead.client.skeleton.common;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 import teamethernet.senmlapi.Label;
 import teamethernet.senmlapi.SenMLAPI;
+
+//DTO that is sent between Provider adn the datamanager. This encodes the data in to the SenML format according to IETF.org rfc8428
 
 public class SenMLJsonDTO {
 
@@ -15,22 +18,26 @@ public class SenMLJsonDTO {
     
     
     
-    public void SenMLJSONDTO(){}
+    public SenMLJsonDTO(){}
 
     public void createSenML(ProviderJSONDTO pDTO) throws IOException {
 		SenMLAPI snML = SenMLAPI.initJson();
-		snML.addRecord(Label.BASE_NAME.attachValue("wm1"), Label.BASE_TIME.attachValue(pDTO.getTimeStamp()), Label.UNIT.attachValue("RPM"), Label.VALUE.attachValue(pDTO.getSpeed()));
+        snML.addRecord(Label.BASE_NAME.attachValue("wm-data"), Label.BASE_TIME.attachValue((double)Instant.now().getEpochSecond()));
+		snML.addRecord(Label.NAME.attachValue("Time"),Label.UNIT.attachValue("Years"), Label.VALUE.attachValue(pDTO.getTimeStamp()));
+		snML.addRecord(Label.NAME.attachValue("RPM"),Label.UNIT.attachValue("RPM"), Label.VALUE.attachValue(pDTO.getSpeed()));
 		final List<Double> acc = pDTO.getAccelerometer();
-		for(int i = 0; i < 16383; i++) {
+		for(double tmp: acc) {
                     
-			snML.addRecord(Label.NAME.attachValue("acceleration"), Label.UNIT.attachValue("Gs"), Label.VALUE.attachValue(acc.get(i)));
+			snML.addRecord(Label.NAME.attachValue("acceleration"), Label.UNIT.attachValue("Gs"), Label.VALUE.attachValue(tmp));
 			
-		}
-		json = snML.getSenML();
+    }
+
+    json = snML.getSenML();
+    // System.out.println(new String(json));
 		
     }
     
-    public byte [] getSenMLByte() {
-        return this.json;
+    public String getSenMLString() {
+        return new String(this.json);
     }
 }

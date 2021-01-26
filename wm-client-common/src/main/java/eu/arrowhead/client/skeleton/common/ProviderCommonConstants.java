@@ -11,6 +11,8 @@ public class ProviderCommonConstants {
     public static final String REQUEST_PARAM_KEY_NEXT = "request-param-next";
     public static final String REQUEST_PARAM_NEXT = "next";
 
+    public static final String HIST_PROV_URI = "/wm_client_provider/wm-data";
+
     public static final String INTERFACE_SECURE = "HTTPS-SECURE-XML";
     public static final String INTERFACE_SECURE_JSON = "HTTPS-SECURE-JSON";
     public static final String INTERFACE_INSECURE = "HTTPS-INSECURE-XML";
