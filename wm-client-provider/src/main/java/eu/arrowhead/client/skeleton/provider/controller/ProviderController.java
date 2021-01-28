@@ -85,17 +85,15 @@ public class ProviderController {
 		}
 	}
 
-	boolean putHistorianData(ProviderJSONDTO pDTO) throws IOException {
+	private void putHistorianData(ProviderJSONDTO pDTO) throws IOException {
 		arrowheadService.updateCoreServiceURIs(CoreSystem.ORCHESTRATOR);
 		final SenMLJsonDTO senMLJsonDTO = new SenMLJsonDTO();
 		senMLJsonDTO.createSenML(pDTO);
 		String message = senMLJsonDTO.getSenMLString();
 		OrchestrationResultDTO orchRes = orchestrate("historian");
 		historianRequest(orchRes, message);
-
-		return true;
-
 	}
+	
 	private void historianRequest(OrchestrationResultDTO orchRes, Object snMLMessage) {
 		final String interfaceName = orchRes.getInterfaces().get(0).getInterfaceName();
 		final String secToken = orchRes.getAuthorizationTokens() == null ? null : orchRes.getAuthorizationTokens().get(interfaceName);
