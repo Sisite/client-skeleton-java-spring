@@ -63,7 +63,6 @@ public class ConsumerMain implements ApplicationRunner {
     //-------------------------------------------------------------------------------------------------
     @Override
 	public void run(final ApplicationArguments args) throws Exception {
-		//SIMPLE EXAMPLE OF INITIATING AN ORCHESTRATION
 
 		System.out.println("\n"+"The WM data consumer service has started. Please issue commands in order to trigger an event!");
 

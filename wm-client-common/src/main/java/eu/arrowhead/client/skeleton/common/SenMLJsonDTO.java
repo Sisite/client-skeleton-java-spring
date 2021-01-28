@@ -8,6 +8,7 @@ import teamethernet.senmlapi.Label;
 import teamethernet.senmlapi.SenMLAPI;
 
 //DTO that is sent between Provider adn the datamanager. This encodes the data in to the SenML format according to IETF.org rfc8428
+//This uses Team Ethernet's SenMLAPI library for converting the data into SenML Json objects.
 
 public class SenMLJsonDTO {
 

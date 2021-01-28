@@ -25,13 +25,15 @@ public class ProviderDataReader {
     private CSVReader csvReader;
 
 
- 
+    //Not pretty with hardcoded file input
+    //TODO: fix hardcoded file path
     public  ProviderDataReader () throws IOException, URISyntaxException {
         csvReader = new CSVReader(new FileReader("/home/robin/Downloads/DATASET02.csv"));
 
                
     }
-
+    
+    // Read one data point from the csv file
     public WMDataObject readData() throws IOException, URISyntaxException {
 
         WMDataObject wmData = new WMDataObject();

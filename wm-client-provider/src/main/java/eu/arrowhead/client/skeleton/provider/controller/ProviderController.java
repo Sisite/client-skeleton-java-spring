@@ -85,6 +85,7 @@ public class ProviderController {
 		}
 	}
 
+	//Convert to SenML and start the orchestration for the historian service
 	private void putHistorianData(ProviderJSONDTO pDTO) throws IOException {
 		arrowheadService.updateCoreServiceURIs(CoreSystem.ORCHESTRATOR);
 		final SenMLJsonDTO senMLJsonDTO = new SenMLJsonDTO();
@@ -93,7 +94,8 @@ public class ProviderController {
 		OrchestrationResultDTO orchRes = orchestrate("historian");
 		historianRequest(orchRes, message);
 	}
-	
+
+	// Consume the historian service and store the data
 	private void historianRequest(OrchestrationResultDTO orchRes, Object snMLMessage) {
 		final String interfaceName = orchRes.getInterfaces().get(0).getInterfaceName();
 		final String secToken = orchRes.getAuthorizationTokens() == null ? null : orchRes.getAuthorizationTokens().get(interfaceName);
@@ -107,7 +109,7 @@ public class ProviderController {
 
 	}
 
-
+	//Orchestration request for historian service
 	private OrchestrationResultDTO orchestrate (final String serviceName) {
 		final ServiceQueryFormDTO srvQDTO = new ServiceQueryFormDTO();
 		srvQDTO.setServiceDefinitionRequirement("historian");
